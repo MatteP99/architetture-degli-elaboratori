@@ -34,23 +34,17 @@ void main()
 		jmp inizio
 
 	copia_parola:
-		xor ebx, ebx
-
-	ciclo_di_copia:
-		mov dl, frase[eax]
-		mov [esi][ebx], dl	;inserisco nella locazione di memoria precedentemente caricata in esi(con un certo offset ebx) la lettera da copiare
-		inc eax				;tiene traccia della posizione delle lettera corrente all interno della frase
-		inc ebx
-		loop ciclo_di_copia
-		mov [esi][ebx], 0	;inserisco il carattere di terminazione per le stringhe
+		lea esi, frase[eax]	;punto di partenza dal quale verranno copiati i caratteri
+		mov [edi][ecx], 0	;inserisco il carattere di terminazione per le stringhe
+		rep movs			;copio i carattari e decremento ecx finché ecx > 0 copio caratteri
 		ret
 
 	inizio:
 		xor eax, eax
 		xor ebx, ebx
 		xor ecx, ecx			;contatore per scorrere la frase
-		mov parolaMin[1], 127	;valore impostato per non copiare parole inesistenti dentro a separatore:
-		mov parolaMax[1], 0		;valore impostato per non copiare parole inesistenti dentro a separatore:
+		mov parolaMin[1], 127	;valore impostato per non impostare parole inesistenti dentro a separatore:
+		mov parolaMax[1], 0		;valore impostato per non impostare parole inesistenti dentro a separatore:
 
 	ciclo:
 		mov al, frase[ecx]
@@ -62,11 +56,11 @@ void main()
 		jmp fine_ciclo
 
 	cambia_offset:
-		mov bh, cl			;dh contiene la posizione di inzio della parola corrente
+		mov bh, cl			;bh contiene la posizione di inzio della parola corrente
 		jmp fine_ciclo
 
 	separatore:
-		cmp bl, 0			;controllo utilizzato per più di un carattere di punteggiatura di fila
+		cmp bl, 0			;controllo utilizzato per gestire più di un carattere di punteggiatura di fila
 		jz fine_ciclo
 		cmp bl,parolaMin[1]			;parolaMin[1] contiene la lunghezza della parola più corta
 		jb nuova_parola_corta
@@ -92,16 +86,15 @@ void main()
 		
 		xor eax, eax
 		xor ecx, ecx
+		cld						;imposto la direzione di copiatura delle stringhe 
 		mov cl, parolaMax[1]	;quanti caratteri devo copiare
 		mov al, parolaMax[0]	;da che punto della frase devo partire
-		lea esi, parolaMax		;dove devo copiare i caratteri
+		lea edi, parolaMax		;dove devo copiare i caratteri
 		call copia_parola
 
-		xor eax, eax
-		xor ecx, ecx
 		mov cl, parolaMin[1]
 		mov al, parolaMin[0]
-		lea esi, parolaMin
+		lea edi, parolaMin
 		call copia_parola
 	}
 
